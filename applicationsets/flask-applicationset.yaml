@@ -22,7 +22,7 @@ spec:
           helm:
             valueFiles:
               - $values/flask-aws-monitor/{{env}}/values.yaml
-        - repoURL: https://github.com/MikyMaor/YOUR-GITOPS-REPO.git
+        - repoURL: https://github.com/MikyMaor/DevOps-GitOps.git
           targetRevision: main
           ref: values
       destination:
