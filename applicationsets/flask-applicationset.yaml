@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: flask-applicationset
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - env: dev
+          - env: qa
+          - env: prd
+  template:
+    metadata:
+      name: flask-{{env}}
+    spec:
+      project: default
+      sources:
+        - repoURL: https://github.com/MikyMaor/Docker_K8S_Helm.git
+          targetRevision: main
+          path: helmchart
+          helm:
+            valueFiles:
+              - $values/flask-aws-monitor/{{env}}/values.yaml
+        - repoURL: https://github.com/MikyMaor/YOUR-GITOPS-REPO.git
+          targetRevision: main
+          ref: values
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{env}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

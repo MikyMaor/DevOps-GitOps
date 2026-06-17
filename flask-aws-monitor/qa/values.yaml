@@ -1,0 +1,21 @@
+replicaCount: 2
+
+image:
+  repository: miky97/flask-aws-monitor
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 5001
+
+ingress:
+  enabled: false
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 512Mi
