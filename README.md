@@ -1,50 +1,31 @@
-# GitOps repository for ArgoCD deployments
+# DevOps GitOps
 
-Per-environment Helm values for `flask-aws-monitor`. Jenkins CI updates image tags here after each Docker build.
+Per-environment Helm values for ArgoCD. Jenkins updates `image.tag` here after each build.
 
 ## Structure
 
 ```
-flask-aws-monitor/
-├── dev/values.yaml
-├── qa/values.yaml
-└── prd/values.yaml
-rendered/                          # created/updated by Jenkins CI
-├── flask-aws-monitor-dev.yaml
-├── flask-aws-monitor-qa.yaml
-└── flask-aws-monitor-prd.yaml
-applicationsets/
-└── flask-applicationset.yaml
+flask-aws-monitor/{dev,qa,prd}/values.yaml
+rendered/                              # helm template output from CI
+applicationsets/flask-applicationset.yaml
+argocd/setup.ps1                       # local ArgoCD install
 ```
 
-## How CI updates this repo
+| Env | Replicas | Service |
+|-----|----------|---------|
+| dev | 1 | ClusterIP |
+| qa  | 2 | ClusterIP |
+| prd | 3 | LoadBalancer |
 
-The `Jenkinsfile` in the Code repo:
+## ArgoCD
 
-1. Builds and pushes `miky97/flask-aws-monitor:<build-number>` to Docker Hub
-2. Clones this repo
-3. Updates `image.tag` in `flask-aws-monitor/*/values.yaml`
-4. Runs `helm template` and commits files under `rendered/`
-5. Pushes to `main`
+Requires Kubernetes (Docker Desktop). From `argocd/`:
 
-ArgoCD watches this repo and syncs deployments when these files change.
-
-## Environment differences
-
-| Env | Replicas | Service type | Ingress |
-|-----|----------|--------------|---------|
-| dev | 1 | ClusterIP | off |
-| qa  | 2 | ClusterIP | off |
-| prd | 3 | LoadBalancer | on |
-
-## ArgoCD (local or cloud shell)
-
-```bash
-kubectl apply -f applicationsets/flask-applicationset.yaml
-argocd app list
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
+kubectl port-forward svc/argocd-server -n argocd 8081:443
 ```
 
-ApplicationSet sources:
+UI: https://localhost:8081 (user `admin`)
 
-- Helm chart: `MikyMaor/Docker_K8S_Helm` → `helmchart/`
-- Values: this repo → `flask-aws-monitor/<env>/values.yaml`
+ApplicationSet uses chart from `Docker_K8S_Helm/helmchart` + values from this repo.
