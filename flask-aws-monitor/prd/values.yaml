@@ -2,7 +2,7 @@ replicaCount: 3
 
 image:
   repository: miky97/flask-aws-monitor
-  tag: latest
+  tag: "2"
   pullPolicy: Always
 
 service:

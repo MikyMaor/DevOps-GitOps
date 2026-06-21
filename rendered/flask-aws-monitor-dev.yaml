@@ -1,0 +1,93 @@
+---
+# Source: flask-aws-monitor/templates/service.yaml
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: flask-dev-flask-aws-monitor
+  labels:
+    helm.sh/chart: flask-aws-monitor-0.1.0
+    app.kubernetes.io/name: flask-aws-monitor
+    app.kubernetes.io/instance: flask-dev
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+  type: ClusterIP
+
+  selector:
+    app.kubernetes.io/name: flask-aws-monitor
+    app.kubernetes.io/instance: flask-dev
+
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: http
+---
+# Source: flask-aws-monitor/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: flask-dev-flask-aws-monitor
+  labels:
+    helm.sh/chart: flask-aws-monitor-0.1.0
+    app.kubernetes.io/name: flask-aws-monitor
+    app.kubernetes.io/instance: flask-dev
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flask-aws-monitor
+      app.kubernetes.io/instance: flask-dev
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flask-aws-monitor
+        app.kubernetes.io/instance: flask-dev
+
+    spec:
+      containers:
+        - name: flask-aws-monitor
+
+          image: "miky97/flask-aws-monitor:2"
+
+          imagePullPolicy: Always
+
+          ports:
+            - name: http
+              containerPort: 5001
+
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              value: ""
+
+            - name: AWS_SECRET_ACCESS_KEY
+              value: ""
+
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
